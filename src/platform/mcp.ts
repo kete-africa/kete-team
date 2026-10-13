@@ -5,6 +5,7 @@ import { env } from './env';
 import { bearerOf, identityFromBearer } from './identity';
 import { registry } from './registry';
 import { asPerson, currentIdentity } from './rights';
+import { syncCenter } from './sync';
 
 let handler: ((request: Request) => Promise<Response>) | undefined;
 
@@ -38,7 +39,15 @@ function mcp(): (request: Request) => Promise<Response> {
 /** The app's MCP endpoint: its capabilities and their views (doctrine D-037). */
 export async function handleMcp(request: Request): Promise<Response> {
   const identity = await identityFromBearer(request);
-  return asPerson(identity, () => mcp()(request), bearerOf(request));
+  const response = await asPerson(identity, () => mcp()(request), bearerOf(request));
+  // What an agent prepared for her may wait for a decision of the center.
+  if (identity?.organizationId && request.method === 'POST') {
+    await syncCenter(bearerOf(request), {
+      organizationId: identity.organizationId,
+      actor: { kind: 'person', id: identity.userId, channel: 'mcp' },
+    });
+  }
+  return response;
 }
 
 /** Where MCP clients learn that the Compte Kete issues this endpoint's tokens (RFC 9728). */

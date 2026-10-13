@@ -1,6 +1,6 @@
 {
   "product": "prd_kete_team",
-  "name": "Kete Équipe",
+  "name": "Kete Team",
   "version": "0.1.0",
   "events": [
     "metrics.daily"

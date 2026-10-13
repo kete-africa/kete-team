@@ -23,13 +23,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-canvas text-fg">
       <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-4 px-4 py-3">
-          <Link to="/taches" className="font-heading text-title font-semibold">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
+          <Link to="/equipe" className="font-heading text-title font-semibold">
             {m.app_name()}
           </Link>
           <nav className="flex gap-4">
-            <Link to="/taches" className="text-body-sm font-semibold text-fg-muted hover:text-fg">
-              {m.nav_tasks()}
+            <Link to="/equipe" className="text-body-sm font-semibold text-fg-muted hover:text-fg">
+              {m.nav_mine()}
+            </Link>
+            <Link
+              to="/equipe/personnes"
+              className="text-body-sm font-semibold text-fg-muted hover:text-fg"
+            >
+              {m.nav_people()}
+            </Link>
+            <Link
+              to="/equipe/affectations"
+              className="text-body-sm font-semibold text-fg-muted hover:text-fg"
+            >
+              {m.nav_assignments()}
+            </Link>
+            <Link to="/equipe/mois" className="text-body-sm font-semibold text-fg-muted hover:text-fg">
+              {m.nav_month()}
             </Link>
             <Link to="/demander" className="text-body-sm font-semibold text-fg-muted hover:text-fg">
               {m.nav_ask()}
@@ -72,7 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-4xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
     </div>
   );
 }

@@ -6,13 +6,13 @@ sequenceDiagram
   participant C as Copilot
   participant A as App (/mcp)
   participant V as View ui://kete/review
-  P->>C: "Ajoute une tâche : relancer Efua vendredi"
-  C->>A: tasks_create (level 3)
+  P->>C: "Affecte Yao au chantier Biasa du 3 au 14"
+  C->>A: assignments_assign (level 3)
   A-->>C: a draft and its review
   C->>V: shows the view in the conversation
   P->>V: corrects, validates
   V->>A: kete_draft_validate (the view only)
-  A->>A: create-task, journaled: Ama, through "view"
+  A->>A: assign, journaled: Mme Lawson, through "view" — refused if Yao is not authorised
   A-->>V: validated
 ```
 

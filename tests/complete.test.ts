@@ -75,7 +75,7 @@ describe('business roles', () => {
         registry.invoke({
           actor: screenActor(who),
           organizationId: ORG,
-          name: 'task_list',
+          name: 'leave_list',
           input: {},
         }),
       );
@@ -88,19 +88,14 @@ describe('a gesture on a screen', () => {
   it('returns the code of the rule it broke, never a crash', async () => {
     const caller = { actor: screenActor(owner), organizationId: ORG };
     const as = <T>(work: () => Promise<T>) => asPerson(owner, work);
-    const created = await performGesture<{ taskId: string }>(
-      registry,
-      { ...caller, name: 'tasks_create', input: { title: 'Relancer le fournisseur' } },
-      as,
-    );
-    expect(created.ok).toBe(true);
-    const taskId = created.ok ? created.output.taskId : '';
+    const leave = { kind: 'annual', startsOn: '2027-03-01', endsOn: '2027-03-05' };
     expect(
-      await performGesture(registry, { ...caller, name: 'tasks_complete', input: { taskId } }, as),
-    ).toMatchObject({ ok: true });
+      await performGesture(registry, { ...caller, name: 'leaves_ask', input: leave }, as),
+    ).toMatchObject({ ok: true, output: { days: 5 } });
+    // One leave at a time on a day: the rule's code comes back, with nothing thrown.
     expect(
-      await performGesture(registry, { ...caller, name: 'tasks_complete', input: { taskId } }, as),
-    ).toEqual({ ok: false, code: 'already_done', facts: {} });
+      await performGesture(registry, { ...caller, name: 'leaves_ask', input: leave }, as),
+    ).toEqual({ ok: false, code: 'already_on_leave', facts: {} });
   });
 });
 
@@ -130,7 +125,7 @@ describe('« Demander »', () => {
                     {
                       type: 'tool-call' as const,
                       toolCallId: 'c1',
-                      toolName: 'task_list',
+                      toolName: 'leave_list',
                       input: '{}',
                     },
                   ],
@@ -139,7 +134,7 @@ describe('« Demander »', () => {
                   warnings: [],
                 }
               : {
-                  content: [{ type: 'text' as const, text: 'Une tâche, faite.' }],
+                  content: [{ type: 'text' as const, text: 'Un congé, en attente.' }],
                   finishReason: { unified: 'stop' as const, raw: 'stop' },
                   usage,
                   warnings: [],
@@ -149,15 +144,23 @@ describe('« Demander »', () => {
       }),
     );
     const outcome = await asPerson(owner, () =>
-      askApp({ userId: owner.userId, organizationId: ORG }, 'Où en sont les tâches ?'),
+      askApp({ userId: owner.userId, organizationId: ORG }, 'Où en sont mes congés ?'),
     );
     expect(outcome).toEqual({
       available: true,
-      answer: 'Une tâche, faite.',
-      sources: ['task_list'],
+      answer: 'Un congé, en attente.',
+      sources: ['leave_list'],
     });
-    // Readings only: completing (acts at once) and creating (a draft) are never offered.
-    expect(offered[0]).toEqual(['task_list', 'task_get']);
+    // Readings only: asking a leave, assigning, deciding are never offered.
+    expect(offered[0]).toEqual([
+      'member_list',
+      'authorisations_of',
+      'authorisations_expiring',
+      'assignment_list',
+      'leave_list',
+      'week_get',
+      'month_elements',
+    ]);
   });
 });
 
@@ -226,13 +229,13 @@ describe('WhatsApp and Telegram', () => {
 
 describe('usage', () => {
   it('counts each gesture, and announces the day’s counts to Kete Cockpit', async () => {
-    await recordUse(ORG, 'tasks_create', owner.userId);
+    await recordUse(ORG, 'leaves_ask', owner.userId);
     await announceDailyUsage(new Date());
     const { rows } = await db.owner.query<{
       envelope: { type: string; data: { counters: Record<string, number> } };
     }>(`select envelope from kete_outbox where organization_id = $1`, [ORG]);
     expect(rows.map((row) => row.envelope.type)).toEqual(['metrics.daily']);
-    expect(rows[0]?.envelope.data.counters).toMatchObject({ usage_events: 1, use_tasks_create: 1 });
+    expect(rows[0]?.envelope.data.counters).toMatchObject({ usage_events: 1, use_leaves_ask: 1 });
   });
 });
 

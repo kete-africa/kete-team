@@ -4,8 +4,12 @@ import { index, rootRoute, route } from '@tanstack/virtual-file-routes';
 // ARCHITECTURE_APP §3). A screen is a file of src/routes; an endpoint too, with server handlers.
 export const routes = rootRoute('__root.tsx', [
   index('index.tsx'),
-  route('/taches', 'tasks/index.tsx'),
-  route('/taches/$taskId', 'tasks/$taskId.tsx'),
+  route('/equipe', 'team/index.tsx'),
+  route('/equipe/personnes', 'team/people.tsx'),
+  route('/equipe/personnes/$userId', 'team/person.tsx'),
+  route('/equipe/affectations', 'team/assignments.tsx'),
+  route('/equipe/mois', 'team/month.tsx'),
+  route('/api/centre/decisions', 'api/center-decisions.ts'),
   route('/verification/$draftId', 'review/$draftId.tsx'),
   route('/demander', 'ask.tsx'),
   route('/journal', 'journal.tsx'),

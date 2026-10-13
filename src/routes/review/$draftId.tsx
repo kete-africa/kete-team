@@ -9,7 +9,7 @@ import {
 } from '@kete/design';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
-import { decideReview, fetchReview } from '@/features/tasks/functions';
+import { decideReview, fetchReview } from '@/features/review/functions';
 import { AppShell } from '@/lib/shell';
 import { requirePerson } from '@/lib/signed-in';
 import * as m from '@/paraglide/messages.js';

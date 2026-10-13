@@ -1,5 +1,5 @@
 import { redirect } from '@tanstack/react-router';
-import { fetchPerson } from '@/features/tasks/functions';
+import { fetchPerson } from '@/features/review/functions';
 
 /** Every signed-in screen: anyone else goes through the Compte Kete first, then comes back. */
 export async function requirePerson(returnTo: string) {

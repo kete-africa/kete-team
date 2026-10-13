@@ -6,7 +6,10 @@ import { chatOutboxMigrationSql } from '@kete/notify';
 import { draftsMigrationSql } from '@kete/drafts';
 import { feedbackMigrationSql } from '@kete/feedback';
 import { outboxMigrationSql } from '@kete/sdk';
-import { tasksMigrationSql } from '@/features/tasks';
+import { leaveMigrationSql } from '@/features/leave';
+import { peopleMigrationSql } from '@/features/people';
+import { timeMigrationSql } from '@/features/time';
+import { sequencesMigrationSql } from '@kete/sequences';
 
 export interface MigrationContext {
   schema: string;
@@ -35,7 +38,8 @@ export const migrations: Migration[] = [
         feedbackMigrationSql(context),
       ].join('\n'),
   },
-  { name: '0001_tasks', sql: (context) => tasksMigrationSql(context) },
+  // The roster: members, authorisations, what each project requires, assignments (spec 001).
+  { name: '0001_people', sql: (context) => peopleMigrationSql(context) },
   // The journal keeps the chain of agents behind each gesture (doctrine D-039).
   { name: '0002_kete_delegation', sql: (context) => commandsDelegationMigrationSql(context) },
   // The business events to the center, in their own outbox (kete-core spec 049).
@@ -55,4 +59,14 @@ export const migrations: Migration[] = [
   },
   // Who uses what, per organization (kete-core spec 091).
   { name: '0007_kete_usage', sql: (context) => usageMigrationSql(context) },
+  // Leave, numbered without a gap, and the week's time by project (spec 001).
+  {
+    name: '0008_leave_and_time',
+    sql: (context) =>
+      [
+        sequencesMigrationSql(context),
+        leaveMigrationSql(context),
+        timeMigrationSql(context),
+      ].join('\n'),
+  },
 ];

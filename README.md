@@ -1,38 +1,34 @@
-# kete-team
+# Kete Team
 
-A Kete App, born complete: it signs people in with the Compte Kete, keeps each organization's data
-apart, journals every gesture, lets agents prepare and people decide — on its screens and in their
-copilot (MCP Apps) — sends its e-mails and events from a worker, and passes CI on its first commit.
-It is born with the roles of its trade, gestures whose broken rules are said in words, « Demander »,
-WhatsApp and Telegram, usage counted for Kete Cockpit, logs, and a session a browser test can write
-(kete-core spec 093).
+Who is there, what each one is authorised to do, where each one works — and the month's elements
+for the pay. One of the four apps behind the center, Kete Enterprise (doctrine D-048).
+
+Kete Team keeps no project of its own: projects are the center's (D-047). It adds what the center
+does not hold about people at work: the authorisations that expire, what each project requires,
+who is assigned where, who is away, and how each week's days split between projects. It computes
+no pay: it gives the accountant the month's elements.
 
 ```mermaid
 flowchart LR
-  P[Person] -->|screens /taches| W[web]
-  C[Copilot · Claude, ChatGPT, Kete] -->|/mcp + views| W
-  W -->|registry: same rights, journal, autonomy| DB[(Postgres · RLS)]
-  W -->|jobs| Q[(kete_jobs)]
-  Q --> K[worker] -->|e-mails| M[MailKite]
-  K -->|events · daily usage| CK[Kete Cockpit]
-  K -->|messages| CH[WhatsApp · Telegram]
-  CH -->|/api/chat/*| W
-  W -->|« Demander »: readings only| AG[@kete/agents]
+  P[Person] -->|/equipe: her week, her leave| W[Kete Team]
+  H[Who keeps the team] -->|roster · authorisations · assignments| W
+  C[Copilot · agents] -->|/mcp: reads, prepares| W
+  W -->|same rights, journal, autonomy| DB[(Postgres · RLS)]
+  W -->|projects| E[Kete Enterprise]
+  W -->|a leave to decide: the circuit finds who| E
   W -->|sign-in| A[Compte Kete]
 ```
 
-## What it is born with
+## Where it stands
 
-| Piece                                                                                       | Where                                                   | From                                                 |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------- |
-| The roles of its trade: a member holds what her business role holds, as the owner ticked it | `src/platform/rights.ts`, migration `0004`              | `@kete/capabilities`                                 |
-| A gesture whose broken rule comes back as its code, said in words                           | `src/platform/screen.ts`, `src/lib/errors.ts`           | `@kete/capabilities` (`performGesture`, `RuleError`) |
-| « Demander »: a question answered with the readings she may open, nothing changed           | `src/features/assistant`, `/demander`                   | `@kete/agents`                                       |
-| WhatsApp and Telegram: its own senders, consent, words, delivery, webhooks                  | `src/platform/chat.ts`, `/api/chat/*`, migration `0005` | `@kete/notify`                                       |
-| Usage per organization, daily counts to Kete Cockpit                                        | `src/platform/usage.ts`, migration `0007`               | `@kete/analytics`                                    |
-| Logs: JSON lines, redacted, traced                                                          | `src/platform/log.ts`                                   | `@kete/log`                                          |
-| Form fields: a choice, a tick, a few lines, the notes under a form                          | the screens                                             | `@kete/design`                                       |
-| A session a browser test writes, as the sign-in does                                        | `tests/complete.test.ts`                                | `@kete/auth` (`signSession`)                         |
+`docs/ROADMAP.md` says what is built and what is proven.
+
+| Part                              | State                                                             |
+| --------------------------------- | ----------------------------------------------------------------- |
+| Roster, authorisations, assignments | Built (spec 001): no assignment without a valid authorisation   |
+| Leave                             | Built (spec 001): the center's circuit, or decided here           |
+| Time by project                   | Built (spec 001): one answer a week; the month's elements         |
+| Advances on salary                | Later: they are money, and belong with Kete Finance's advances    |
 
 ## Run locally
 
@@ -46,6 +42,17 @@ pnpm dev               # http://localhost:3400
 pnpm worker            # in another terminal: e-mails and events
 ```
 
+To look at the screens without a Compte Kete nor a center:
+
+```bash
+pnpm demo              # http://localhost:3421 — a small team at work, in a throwaway schema
+```
+
+`pnpm demo` needs only the two test addresses of `.env` (`KETE_TEST_OWNER_URL`,
+`KETE_TEST_APP_URL`). It opens as the owner; `http://localhost:3421/hr`, `/lead` and `/staff`
+open as the roles of the trade. It runs without a center: its two projects are written by the
+demonstration, and every leave is decided here.
+
 ## Test
 
 ```bash
@@ -57,17 +64,6 @@ pnpm typecheck
 
 The repository's secret `KETE_PACKAGES_TOKEN` (read:packages) lets CI read kete-core's packages;
 the image receives it as the build secret `node_auth_token`. One image, two roles (doctrine
-ARCHITECTURE_APP §9): the web process (`pnpm start`, migrations at
-start-up) and the worker (`pnpm worker`). An operator registers the app at the Compte Kete
-(client id and secret) and declares it in Kete Cockpit (its events key).
-
-## Make it yours
-
-1. Name it in `kete.json` and `messages/` (`app_name`), and fill its identity card there
-   (`governance`, doctrine D-040): who answers for it, the data it handles (`personal`, `financial`,
-   `payment`, `children`…), whether it calls AI models, and what an outage costs (`low` to
-   `critical`). Kete's registry deduces from it the controls that apply.
-2. Replace `src/features/tasks` with the first real feature, keeping its layers. Name the roles of
-   its trade in `src/platform/rights.ts` (`businessRoles`) and in each permission's
-   `businessRoles`; adapt « Demander »'s rules (`src/features/assistant/ask.ts`) to the trade.
-3. Choose its design in `src/platform/app.ts` — `kete`, `workspace`, or its own (`design/`).
+ARCHITECTURE_APP §9): the web process (`pnpm start`, migrations at start-up) and the worker
+(`pnpm worker`). An operator registers the app at the Compte Kete (client id and secret), declares
+it in Kete Cockpit (its events key) and in the organization's Kete Enterprise (its manifest).
