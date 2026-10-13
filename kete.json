@@ -1,0 +1,23 @@
+{
+  "product": "prd_kete_team",
+  "name": "Kete Équipe",
+  "version": "0.1.0",
+  "events": [
+    "metrics.daily"
+  ],
+  "governance": {
+    "owner": {
+      "name": "Kete",
+      "contact": "support@kete.africa"
+    },
+    "dataCategories": [
+      "personal",
+      "confidential"
+    ],
+    "ai": {
+      "used": true,
+      "purpose": "Answers questions with the readings the person may open (« Demander »), when a model is configured."
+    },
+    "criticality": "medium"
+  }
+}
