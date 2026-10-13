@@ -9,7 +9,8 @@ import {
   type Manifest,
 } from '@kete/sdk';
 import { z } from 'zod';
-import { taskEvents } from '@/features/tasks';
+import { leaveEvents, leaveSubjects } from '@/features/leave';
+import { peopleEvents } from '@/features/people';
 import app from '../../kete.json' with { type: 'json' };
 import { CENTER_OUTBOX } from './announce';
 import { PRODUCT, VERSION } from './app';
@@ -30,7 +31,7 @@ function environment(): Manifest['environment'] {
 }
 
 /** The business events of every feature, announced to the center. */
-const EMITTED = [...taskEvents];
+const EMITTED = [...peopleEvents, ...leaveEvents];
 
 /** Where agents and other apps reach this app, once its address is known. */
 function endpoints(): { endpoints?: { mcp: string; api: string } } {
@@ -63,6 +64,8 @@ export function manifest(): Manifest {
     // Its permissions and their words (kete-core spec 049): Kete Enterprise lets an administrator
     // grant them; its client id lets the center accept the app's own tokens.
     permissions: describePermissions(permissions),
+    // What it asks the center's circuits to decide (kete-core spec 049).
+    subjects: leaveSubjects,
     // The business events it announces to its center, and their data (kete-core spec 049).
     emits: EMITTED.map((e) => ({
       type: e.type,
@@ -97,6 +100,19 @@ export async function flushEvents(): Promise<void> {
 }
 
 let appToken: (() => Promise<string | null>) | undefined;
+
+/**
+ * The app's own token for its center (`kete:center`): what it reads a decision with. Null without
+ * a registration at the Compte Kete.
+ */
+export async function centerAppToken(): Promise<string | null> {
+  const accountUrl = process.env.KETE_ACCOUNT_URL;
+  const clientId = process.env.KETE_CLIENT_ID;
+  const clientSecret = process.env.KETE_CLIENT_SECRET;
+  if (!getCenter().connected || !accountUrl || !clientId || !clientSecret) return null;
+  appToken ??= createAppToken({ accountUrl, clientId, clientSecret, scope: 'kete:center' });
+  return appToken();
+}
 
 /**
  * Delivers the business events to the center once (the worker's job), with the app's own token

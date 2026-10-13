@@ -3,6 +3,7 @@ import { getRequest } from '@tanstack/react-start/server';
 import { registry } from './registry';
 import { asPerson } from './rights';
 import { personOf, screenActor, tokenOf } from './session';
+import { syncCenter } from './sync';
 import { recordUse } from './usage';
 
 export class ScreenError extends Error {
@@ -21,6 +22,8 @@ export async function signedIn() {
   const token = await tokenOf(request);
   return {
     identity,
+    /** Her own token, kept on the server: what the center is asked with. */
+    token,
     caller: { actor: screenActor(identity), organizationId: identity.organizationId },
     /** Runs `work` with her rights: the center's grants, her business role, or her role's defaults. */
     as: <T>(work: () => T | Promise<T>) => asPerson(identity, work, token),
@@ -38,12 +41,16 @@ export async function perform<T = unknown>(
   /** The gesture's key: sent twice — a double tap, a retry — it runs once. */
   idempotencyKey?: string,
 ): Promise<Outcome<T>> {
-  const { identity, caller, as } = await signedIn();
+  const { identity, caller, as, token } = await signedIn();
   const outcome = await performGesture<T>(
     registry,
     { ...caller, name, input, ...(idempotencyKey ? { idempotencyKey } : {}) },
     as,
   );
-  if (outcome.ok) await recordUse(caller.organizationId, name, identity.userId);
+  if (outcome.ok) {
+    await recordUse(caller.organizationId, name, identity.userId);
+    // What she asked may wait for a decision of the center: it is asked now.
+    await syncCenter(token, caller);
+  }
   return outcome;
 }

@@ -7,7 +7,7 @@ import { manifest } from './events';
 // Who uses what in this app (@kete/analytics): each gesture counted for its organization, and
 // once a day the counts — never a person — announced to Kete Cockpit.
 
-/** A capability's name as a usage: `tasks_create` → `tasks.create`. */
+/** A capability's name as a usage: `leaves_ask` → `leaves.ask`. */
 const usageName = (capability: string) => capability.replace('_', '.');
 
 /** Counts a gesture; usage never fails the gesture it measures. */
