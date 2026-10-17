@@ -18,7 +18,9 @@ export class TeamRuleError extends RuleError {
       | 'on_leave'
       | 'period_invalid'
       | 'not_of_project'
-      | 'assignment_not_found',
+      | 'assignment_not_found'
+      | 'refused_by_policy'
+      | 'approval_required',
     facts: Record<string, string | number> = {},
   ) {
     super(code, facts);

@@ -16,3 +16,8 @@ stateDiagram-v2
   asked --> cancelled: taken back
   returned --> cancelled
 ```
+
+## The living model (spec 004)
+
+A leave sent back is said to the center as its requester's to correct (`leaveHoldings`, kete-core
+spec 114). A leave the center's circuit decides is already a holding there.

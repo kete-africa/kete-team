@@ -7,7 +7,12 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { migrations } from '../db/migrations';
 import { decisionOf, listLeaves } from '../src/features/leave';
 import { covering, missingFor } from '../src/features/people/domain/validity';
-import { expiringWithin, listAssignments, listMembers } from '../src/features/people';
+import {
+  authorisationHoldings,
+  expiringWithin,
+  listAssignments,
+  listMembers,
+} from '../src/features/people';
 import { monthElements, weekOf } from '../src/features/time';
 import { mondayOf, plusDays, workingDays } from '../src/lib/days';
 import { transaction, usePool } from '../src/platform/db';
@@ -56,6 +61,8 @@ const center = {
   requests: new Map<string, string>(),
   decisions: new Map<string, { status: string; decidedBy: string | null; reason: string | null }>(),
 };
+/** The organization's policies on an assignment, at the center: none written until a test says. */
+let policy: ((gesture: Record<string, unknown>) => Record<string, unknown>) | null = null;
 const names: Record<string, string> = {
   [SITE]: 'Centrale solaire — Clinique Biasa',
   [OFFICE]: 'Bureau d’études',
@@ -90,6 +97,9 @@ function fakeCenter(input: string | URL | Request, init?: RequestInit): Promise<
           }),
         )
       : no('not_found', 404);
+  }
+  if (path === '/v1/apps/prd_kete_team/gestures' && policy) {
+    return Promise.resolve(Response.json({ verdict: policy(body) }));
   }
   if (path === '/v1/apps/prd_kete_team/decisions' && init?.method === 'POST') {
     center.asked.push(body);
@@ -546,6 +556,59 @@ describe('who reads what', () => {
         );
       },
     });
+  });
+});
+
+describe('the living model (spec 004)', () => {
+  it('passes an assignment through the organization’s policies, and says their sentence', async () => {
+    const work = { userId: essi.userId, projectId: OFFICE, startsOn: day(60), endsOn: day(62) };
+    policy = (gesture) => ({
+      effect: 'refuse',
+      policies: [{ id: 'assign.lead', sentence: 'Seul le responsable du projet y affecte' }],
+      approvers: [],
+      echo: gesture,
+    });
+    expect(await gesture(afi, 'assignments_assign', work)).toEqual({
+      ok: false,
+      code: 'refused_by_policy',
+      facts: { why: 'Seul le responsable du projet y affecte' },
+    });
+    policy = () => ({
+      effect: 'approve',
+      policies: [{ id: 'assign.long', sentence: 'Au-delà de deux jours, la direction approuve' }],
+      approvers: [{ approver: 'manager', people: ['usr_yao'] }],
+    });
+    expect(await gesture(afi, 'assignments_assign', work)).toEqual({
+      ok: false,
+      code: 'approval_required',
+      facts: { who: 'Yao', why: 'Au-delà de deux jours, la direction approuve' },
+    });
+    policy = () => ({ effect: 'allow', policies: [], approvers: [] });
+    done(await gesture(afi, 'assignments_assign', work));
+    policy = null;
+  });
+
+  it('says an authorisation ending within thirty days as its holder’s to renew', async () => {
+    const kind = done(
+      await gesture<{ kindId: string }>(afi, 'authorisations_name_kind', { name: 'Travail en hauteur — recyclage' }),
+    );
+    done(
+      await gesture(afi, 'authorisations_grant', {
+        userId: essi.userId,
+        kindId: kind.kindId,
+        validFrom: day(-300),
+        validUntil: day(5),
+      }),
+    );
+    const holdings = await transaction(ORG, (tx) => authorisationHoldings(tx));
+    expect(holdings).toContainEqual(
+      expect.objectContaining({
+        kind: 'authorisation',
+        holder: { kind: 'person', id: 'usr_essi' },
+        due: day(5),
+        href: 'https://team.test/equipe/personnes/usr_essi',
+      }),
+    );
   });
 });
 

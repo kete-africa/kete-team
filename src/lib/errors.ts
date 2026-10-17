@@ -32,6 +32,9 @@ export function sayError(code: string, facts: Facts = {}): string {
     period_invalid: m.errors_period_invalid,
     not_of_project: m.errors_not_of_project,
     assignment_not_found: m.errors_assignment_not_found,
+    refused_by_policy: () => m.errors_refused_by_policy({ why: fact(facts, 'why') }),
+    approval_required: () =>
+      m.errors_approval_required({ who: fact(facts, 'who'), why: fact(facts, 'why') }),
     leave_not_found: m.errors_leave_not_found,
     leave_not_waiting: m.errors_leave_not_waiting,
     leave_not_returned: m.errors_leave_not_returned,

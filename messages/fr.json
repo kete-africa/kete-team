@@ -201,5 +201,9 @@
   "errors_not_a_monday": "Une semaine commence un lundi.",
   "errors_week_too_long": "Une semaine a sept jours au plus.",
   "errors_not_assigned": "Vous n’êtes pas affecté à ce projet cette semaine.",
-  "errors_week_not_started": "Cette semaine n’a pas commencé."
+  "errors_week_not_started": "Cette semaine n’a pas commencé.",
+  "errors_refused_by_policy": "Les politiques de l’organisation refusent ce geste : {why}",
+  "errors_approval_required": "Ce geste demande l’accord de {who} : {why}",
+  "holding_leave_returned": "Corriger la demande de congé {number}",
+  "holding_authorisation_ends": "Renouveler l’habilitation « {kind} » (valable jusqu’au {until})"
 }

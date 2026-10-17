@@ -3,6 +3,7 @@ import type { SqlExecutor } from '@kete/tenancy';
 import { announce } from '@/platform/announce';
 import { getCenter } from '@/platform/center';
 import { actingFor, currentToken } from '@/platform/person';
+import { passGesture, sentencesOf } from '@/platform/policies';
 import { missingFor, period, TeamRuleError } from '../domain/people';
 import {
   endAssignmentOn,
@@ -95,6 +96,10 @@ export const grantAuthorisation = defineCommand({
   summarize: (input) => `Authorisation recorded for ${input.userId}`,
 });
 
+/** How many days a period covers, both ends counted. */
+const daysOf = (startsOn: string, endsOn: string) =>
+  Math.round((Date.parse(endsOn) - Date.parse(startsOn)) / 86_400_000) + 1;
+
 /** Says what a project requires of whoever is assigned to it. */
 export const requireForProject = defineCommand({
   name: 'require-for-project',
@@ -142,6 +147,24 @@ export const assign = defineCommand({
         person: member.name,
         from: leave.startsOn,
         to: leave.endsOn,
+      });
+    }
+    // The organization's policies, at the center (kete-core spec 114): the same for a person and
+    // her agent. Unruled, this app's rules above are enough.
+    const verdict = await passGesture(currentToken(), actor, {
+      kind: 'assignment.make',
+      object: { kind: 'project', id: project.projectId },
+      context: { days: daysOf(input.startsOn, input.endsOn) },
+    });
+    if (verdict.effect === 'refuse') {
+      throw new TeamRuleError('refused_by_policy', { why: sentencesOf(verdict) });
+    }
+    if (verdict.effect === 'approve') {
+      const ids = verdict.approvers.flatMap((a) => a.people);
+      const names = await Promise.all(ids.map(async (id) => (await findMember(db, id))?.name ?? id));
+      throw new TeamRuleError('approval_required', {
+        who: names.join(', ') || '—',
+        why: sentencesOf(verdict),
       });
     }
     const assignmentId = await insertAssignment(db, {
