@@ -4,6 +4,7 @@ export { leaveEvents } from './events';
 export { leavePermissions, leaveSubjects } from './policies';
 export { leaveDaysIn, leaveIn, leaveMigrationSql, listLeaves } from './infrastructure/leave.table';
 export { applyDecision, decisionOf, readDecision, routeWaiting } from './route';
+export { leaveHoldings } from './holdings';
 export {
   leaveCorrection,
   leaveDecision,

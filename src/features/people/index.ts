@@ -2,6 +2,7 @@
 export { peopleCapabilities, reads, useReadsEveryone } from './capabilities';
 export { useLeaveCheck } from './commands/people';
 export { peopleEvents } from './events';
+export { authorisationHoldings } from './holdings';
 export { peoplePermissions } from './policies';
 export {
   authorisationsOf,

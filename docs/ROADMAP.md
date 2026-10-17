@@ -7,6 +7,7 @@ yet.
 | Step | Branch      | What it gives                                                                                     | Proof                                                       | State |
 | ---- | ----------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ----- |
 | H1   | `001-team`  | The roster, authorisations that expire, what a project requires, assignments, leave, weekly time  | « A person without a valid authorisation cannot be assigned » | Built |
+| A5   | `004-on-the-model` | What it holds said to the center as holdings; an assignment through the organization's policies | « A policy at the center refuses an assignment here » | Built |
 | H2   | `002-reach` | A reminder before an authorisation expires and a leave decided by a reply, on WhatsApp and Telegram | « An expiring clearance is said to its holder on her phone »  | Next  |
 | H3   | `003-cost`  | The cost of a day by person, and each project's labour cost told to the center                    | « A project's labour cost follows the weeks' answers »      | Later |
 

@@ -11,6 +11,7 @@ import { announceDailyUsage } from './usage';
 import { createMailer, emailSenderFromEnv, type Mailer } from '@kete/notify';
 import { env } from './env';
 import { flushCenterEvents, flushEvents } from './events';
+import { sayAllHoldings } from './holdings';
 
 let jobs: Jobs | undefined;
 let started: Promise<void> | undefined;
@@ -32,6 +33,13 @@ export function getJobs(work = false): Jobs {
         schedule: '* * * * *',
         retryLimit: 0,
         handle: () => deliverWaiting(),
+      }),
+      // What the app holds, said to the center, every minute (kete-core spec 114).
+      defineJob<object>({
+        name: 'holdings.say',
+        schedule: '* * * * *',
+        retryLimit: 0,
+        handle: () => sayAllHoldings(),
       }),
       // Yesterday's usage counts, to Kete Cockpit, each morning.
       defineJob<object>({

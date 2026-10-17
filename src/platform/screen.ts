@@ -3,6 +3,7 @@ import { getRequest } from '@tanstack/react-start/server';
 import { registry } from './registry';
 import { asPerson } from './rights';
 import { personOf, screenActor, tokenOf } from './session';
+import { sayHoldings } from './holdings';
 import { syncCenter } from './sync';
 import { recordUse } from './usage';
 
@@ -51,6 +52,8 @@ export async function perform<T = unknown>(
     await recordUse(caller.organizationId, name, identity.userId);
     // What she asked may wait for a decision of the center: it is asked now.
     await syncCenter(token, caller);
+    // The center hears at once what the app now holds (kete-core spec 114); never awaited.
+    void sayHoldings(caller.organizationId);
   }
   return outcome;
 }
