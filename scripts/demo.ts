@@ -28,16 +28,26 @@ loadRepositoryEnv(root);
 for (const name of ['KETE_TEST_APP_URL', 'KETE_TEST_OWNER_URL']) {
   if (!process.env[name]) throw new Error(`${name} must be set (see .env.example).`);
 }
-const sessionSecret = randomBytes(32).toString('hex');
+// Joined to a Compte Kete on this machine (`KETE_DEMO_JOINED=on`, set by kete-core's
+// `pnpm platform`): the app signs people in through it (`KETE_ACCOUNT_URL`, `KETE_CLIENT_ID`,
+// `KETE_CLIENT_SECRET`), speaks to the center (`ENTERPRISE_API_URL`), and its data are seeded in
+// the Compte Kete's organization, the person signed in being their owner.
+const joined = process.env.KETE_DEMO_JOINED === 'on';
+const sessionSecret = (joined && process.env.SESSION_SECRET) || randomBytes(32).toString('hex');
 Object.assign(process.env, {
   DATABASE_URL: process.env.KETE_TEST_APP_URL,
   OWNER_DATABASE_URL: process.env.KETE_TEST_OWNER_URL,
-  PUBLIC_URL: `http://localhost:${APP_PORT}`,
-  KETE_ACCOUNT_URL: 'http://localhost:9',
-  KETE_CLIENT_ID: 'demo',
-  KETE_CLIENT_SECRET: 'demo',
+  // Joined: on 127.0.0.1, the loopback address the Compte Kete accepts for a client's return.
+  PUBLIC_URL: `http://${joined ? '127.0.0.1' : 'localhost'}:${APP_PORT}`,
   SESSION_SECRET: sessionSecret,
-  ENTERPRISE_API_URL: '',
+  ...(joined
+    ? {}
+    : {
+        KETE_ACCOUNT_URL: 'http://localhost:9',
+        KETE_CLIENT_ID: 'demo',
+        KETE_CLIENT_SECRET: 'demo',
+        ENTERPRISE_API_URL: '',
+      }),
 });
 
 // A run that was killed could not drop its schema: the next one does.
@@ -69,7 +79,13 @@ const { usePool } = await import('../src/platform/db');
 usePool(db.app);
 const { demoPeople, seedDemo } = await import('../db/demo/seed');
 say(`Schéma ${db.schema}. Données de démonstration…`);
+// Seeded as the app alone — its decisions taken here, no center nor other app asked, nobody being
+// signed in yet; joined, its screens then speak to them.
+const linked = ['ENTERPRISE_API_URL', 'COMMITMENTS_API_URL', 'FINANCE_URL'] as const;
+const kept = Object.fromEntries(linked.map((name) => [name, process.env[name]]));
+for (const name of linked) delete process.env[name];
 await seedDemo();
+for (const name of linked) if (kept[name]) process.env[name] = kept[name];
 
 // The screens, served from the build, on the same schema.
 const web = spawn(
@@ -96,6 +112,7 @@ const door = createServer((request, response) => {
   });
 });
 door.listen(DOOR_PORT, '127.0.0.1', () => {
+  if (joined) say(`Prêt. Connectez-vous par http://127.0.0.1:${APP_PORT} avec votre Compte Kete.`);
   say(`Prêt. Entrez par http://localhost:${DOOR_PORT} (propriétaire).`);
   say(`Autres rôles : ${Object.keys(demoPeople).filter((role) => role !== 'owner').map((role) => `http://localhost:${DOOR_PORT}/${role}`).join(' · ')}`);
 });
