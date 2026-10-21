@@ -10,6 +10,8 @@ import {
 } from '@/features/leave';
 import { authorisationsOf, expiringWithin } from '@/features/people';
 import { getCenter } from '@/platform/center';
+import { env } from '@/platform/env';
+import * as m from '@/paraglide/messages.js';
 import { transaction } from '@/platform/db';
 import { centerAppToken } from '@/platform/events';
 import { answer, may } from '@/platform/may';
@@ -77,9 +79,20 @@ export const sayWeek = createServerFn({ method: 'POST' })
 
 export const askLeave = createServerFn({ method: 'POST' })
   .validator((input: unknown) => leaveInput.parse(input))
-  .handler(async ({ data }) =>
-    answer(await perform<{ leaveId: string; days: number }>('leaves_ask', data)),
-  );
+  .handler(async ({ data }) => {
+    const outcome = await perform<{ leaveId: string; days: number }>('leaves_ask', data);
+    if (outcome.ok) {
+      // Its thread is born with it at the center (Kete Enterprise spec 098, FR-010).
+      const { identity, token } = await signedIn();
+      await getCenter().openObjectThread(token, {
+        kind: 'leave',
+        id: outcome.output.leaveId,
+        title: `${m.leave_thread_title({ name: identity.name })} — ${data.startsOn} → ${data.endsOn}`.slice(0, 200),
+        href: `${env.publicUrl}/`,
+      });
+    }
+    return answer(outcome);
+  });
 
 export const correctLeave = createServerFn({ method: 'POST' })
   .validator((input: unknown) => leaveCorrection.parse(input))

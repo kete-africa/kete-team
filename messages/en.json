@@ -205,5 +205,6 @@
   "errors_refused_by_policy": "The organization’s policies refuse this gesture: {why}",
   "errors_approval_required": "This gesture needs {who}’s approval: {why}",
   "holding_leave_returned": "Correct leave request {number}",
-  "holding_authorisation_ends": "Renew the « {kind} » authorisation (valid until {until})"
+  "holding_authorisation_ends": "Renew the « {kind} » authorisation (valid until {until})",
+  "leave_thread_title": "Leave of {name}"
 }
