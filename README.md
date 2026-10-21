@@ -59,6 +59,8 @@ organization — seeded as the app alone, then its screens speak to the center a
 and the person signed in is its owner. It then answers on `http://127.0.0.1:<port>`, the loopback
 address the Compte Kete accepts for a client's return.
 
+
+**Its thread at the center** (Kete Enterprise spec 098): a leave's thread is born at the center when it is asked, held by who asked it.
 ## Test
 
 ```bash
