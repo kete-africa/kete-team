@@ -1,11 +1,13 @@
 import { readFileSync } from 'node:fs';
 import type { KeteIdentity } from '@kete/auth';
 import { assignBusinessRole, performGesture, type Caller } from '@kete/capabilities';
-import { validateManifest } from '@kete/sdk';
+import { objectBody } from '@kete/center';
+import { validateManifest, validateObject, validateObjectType } from '@kete/sdk';
 import { assertOrganizationIsolation, createTestSchema, type TestSchema } from '@kete/testing';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { migrations } from '../db/migrations';
-import { decisionOf, listLeaves } from '../src/features/leave';
+import { decisionOf, leaveObjects, listLeaves } from '../src/features/leave';
+import { authorisationObjects } from '../src/features/people';
 import { covering, missingFor } from '../src/features/people/domain/validity';
 import {
   authorisationHoldings,
@@ -609,6 +611,28 @@ describe('the living model (spec 004)', () => {
         href: 'https://team.test/equipe/personnes/usr_essi',
       }),
     );
+  });
+});
+
+describe('its objects in the center’s index (spec 006; kete-core spec 142)', () => {
+  it('says its leaves and authorisations, each with its holder and a state its kind declares', async () => {
+    const card = manifest();
+    expect((card.objects ?? []).map((o) => o.kind)).toEqual(['leave', 'authorisation']);
+    for (const kind of card.objects ?? []) expect(validateObjectType(kind).ok).toBe(true);
+    const objects = await transaction(ORG, async (tx) => [
+      ...(await leaveObjects(tx)),
+      ...(await authorisationObjects(tx)),
+    ]);
+    expect(objects.some((o) => o.kind === 'leave')).toBe(true);
+    // The authorisation ending in five days says so.
+    expect(objects).toContainEqual(
+      expect.objectContaining({ kind: 'authorisation', state: 'ending', personId: 'usr_essi' }),
+    );
+    const states = new Map((card.objects ?? []).map((k) => [k.kind, k.states.map((x) => x.id)]));
+    for (const object of objects) {
+      expect(validateObject(objectBody(object)).ok).toBe(true);
+      expect(states.get(object.kind)).toContain(object.state);
+    }
   });
 });
 

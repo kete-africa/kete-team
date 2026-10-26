@@ -1,8 +1,8 @@
 import { organizationsWithUsage } from '@kete/analytics';
-import type { AppHolding } from '@kete/center';
+import type { AppHolding, AppObject } from '@kete/center';
 import type { SqlExecutor } from '@kete/tenancy';
-import { leaveHoldings } from '@/features/leave';
-import { authorisationHoldings } from '@/features/people';
+import { leaveHoldings, leaveObjects } from '@/features/leave';
+import { authorisationHoldings, authorisationObjects } from '@/features/people';
 import { getCenter } from './center';
 import { getPool, transaction } from './db';
 import { centerAppToken } from './events';
@@ -15,6 +15,12 @@ import { log } from './log';
 
 /** Each feature's things in progress, read in the organization's transaction. */
 const SOURCES: ((db: SqlExecutor) => Promise<AppHolding[]>)[] = [leaveHoldings, authorisationHoldings];
+
+/**
+ * Its leaves and authorisations, for the center's index (spec 006; kete-core spec 142): found and
+ * cited there — « # », the search, Kete, the agents — with each person's rights.
+ */
+const OBJECTS: ((db: SqlExecutor) => Promise<AppObject[]>)[] = [leaveObjects, authorisationObjects];
 
 /** Says what the app holds for one organization; never fails the gesture it follows. */
 export async function sayHoldings(organizationId: string): Promise<void> {
@@ -29,6 +35,12 @@ export async function sayHoldings(organizationId: string): Promise<void> {
     const said = await center.sayHoldings(token, organizationId, holdings);
     if (!said.ok)
       log.warn('holdings not said to the center', { organizationId, error: said.error });
+    const objects = await transaction(organizationId, async (db) =>
+      (await Promise.all(OBJECTS.map((source) => source(db)))).flat(),
+    );
+    const indexed = await center.sayObjects(token, organizationId, objects);
+    if (!indexed.ok)
+      log.warn('objects not said to the center', { organizationId, error: indexed.error });
   } catch (error) {
     log.warn('holdings not said to the center', { organizationId, error });
   }

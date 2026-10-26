@@ -205,6 +205,8 @@
   "errors_refused_by_policy": "Les politiques de l’organisation refusent ce geste : {why}",
   "errors_approval_required": "Ce geste demande l’accord de {who} : {why}",
   "holding_leave_returned": "Corriger la demande de congé {number}",
+  "object_leave": "Congé {number} — {name}",
+  "object_authorisation": "Habilitation « {kind} » — {name}",
   "holding_authorisation_ends": "Renouveler l’habilitation « {kind} » (valable jusqu’au {until})",
   "leave_thread_title": "Congé de {name}"
 }

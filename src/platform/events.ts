@@ -58,6 +58,8 @@ export function manifest(): Manifest {
     events: DECLARED_EVENTS,
     // Who answers for the app, its data, its use of AI, its criticality (doctrine D-040).
     governance: app.governance,
+    // Its kinds of objects (spec 006, kete-core spec 142): the center's index keeps them.
+    objects: app.objects as Manifest['objects'],
     // What it exposes, and where (kete-core spec 045): the registry of Kete Enterprise reads them.
     capabilities: registry.describeAll(),
     datasets: datasets.describeAll(),
