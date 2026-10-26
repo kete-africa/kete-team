@@ -19,5 +19,113 @@
       "purpose": "Answers questions with the readings the person may open (« Demander »), when a model is configured."
     },
     "criticality": "medium"
-  }
+  },
+  "objects": [
+    {
+      "kind": "leave",
+      "label": {
+        "fr": "Congé",
+        "en": "Leave",
+        "fr_plural": "Congés",
+        "en_plural": "Leaves"
+      },
+      "icon": "cal",
+      "states": [
+        {
+          "id": "asked",
+          "label": {
+            "fr": "Demandé",
+            "en": "Asked"
+          },
+          "tone": "info"
+        },
+        {
+          "id": "returned",
+          "label": {
+            "fr": "Renvoyé",
+            "en": "Returned"
+          },
+          "tone": "verify"
+        },
+        {
+          "id": "approved",
+          "label": {
+            "fr": "Accordé",
+            "en": "Approved"
+          },
+          "tone": "ok"
+        },
+        {
+          "id": "taken",
+          "label": {
+            "fr": "Pris",
+            "en": "Taken"
+          },
+          "tone": "neutral",
+          "closed": true
+        },
+        {
+          "id": "refused",
+          "label": {
+            "fr": "Refusé",
+            "en": "Refused"
+          },
+          "tone": "error",
+          "closed": true
+        },
+        {
+          "id": "cancelled",
+          "label": {
+            "fr": "Annulé",
+            "en": "Cancelled"
+          },
+          "tone": "neutral",
+          "closed": true
+        }
+      ],
+      "axes": [
+        "person"
+      ]
+    },
+    {
+      "kind": "authorisation",
+      "label": {
+        "fr": "Habilitation",
+        "en": "Authorisation",
+        "fr_plural": "Habilitations",
+        "en_plural": "Authorisations"
+      },
+      "icon": "shield",
+      "states": [
+        {
+          "id": "valid",
+          "label": {
+            "fr": "Valide",
+            "en": "Valid"
+          },
+          "tone": "ok"
+        },
+        {
+          "id": "ending",
+          "label": {
+            "fr": "Bientôt échue",
+            "en": "Ending soon"
+          },
+          "tone": "verify"
+        },
+        {
+          "id": "expired",
+          "label": {
+            "fr": "Échue",
+            "en": "Expired"
+          },
+          "tone": "error",
+          "closed": true
+        }
+      ],
+      "axes": [
+        "person"
+      ]
+    }
+  ]
 }
